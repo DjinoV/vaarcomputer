@@ -1,0 +1,99 @@
+# hw definition file for processing by chibios_pins.py
+# for vaarcomputerv1
+# Djino van Dorland
+
+# MCU class and specific type
+MCU STM32H7xx STM32H743xx
+
+# board ID. See Tools/AP_Bootloader/board_types.txt
+APJ_BOARD_ID 9999
+
+# crystal frequency, setup to use external oscillator
+OSCILLATOR_HZ 8000000
+
+FLASH_SIZE_KB 2048
+
+# bootloader takes first sector
+FLASH_RESERVE_START_KB 128
+
+# ChibiOS system timer
+STM32_ST_USE_TIMER 12
+define CH_CFG_ST_RESOLUTION 16
+
+# LED
+PB12 LED_RED OUTPUT LOW GPIO(90)
+define HAL_GPIO_B_LED_PIN 90
+define HAL_GPIO_LED_ON 1
+
+# USB
+PA11 OTG_FS_DM OTG1
+PA12 OTG_FS_DP OTG1
+
+PA13 JTMS-SWDIO SWD
+PA14 JTCK-SWCLK SWD
+
+# SPI1 for IMU1 (BMI088)
+PA5 SPI1_SCK SPI1
+PA6 SPI1_MISO SPI1
+PA7 SPI1_MOSI SPI1
+PC4 IMU1_CS_A CS
+PB1 IMU1_CS_G CS
+PB0 IMU2_CS CS
+
+# I2C communication for BMP388
+I2C_ORDER  I2C1
+
+# I2C1
+PB8 I2C1_SCL I2C1
+PB9 I2C1_SDA I2C1
+
+# analog input (placeholder for battery voltage)
+PC0 BATT_VOLTAGE_SENS ADC1 SCALE(1)
+
+# order of UARTs (and USB)
+SERIAL_ORDER OTG1 UART7 UART5 UART4
+
+# UART7 
+PB4 UART7_TX UART7
+PB3 UART7_RX UART7
+
+# UART5
+PB6 UART5_TX UART5
+PB5 UART5_RX UART5
+
+# UART4 
+PA0 UART4_TX UART4
+PA1 UART4_RX UART4
+
+DMA_PRIORITY S*
+
+define HAL_STORAGE_SIZE 32768
+
+# use last 2 pages for flash storage
+# H743 has 16 pages of 128k each
+STORAGE_FLASH_PAGE 14
+
+# spi devices
+SPIDEV bmi088_a SPI1 DEVID1 IMU1_CS_A MODE3 10*MHZ 10*MHZ
+SPIDEV bmi088_g SPI1 DEVID2 IMU1_CS_G MODE3 10*MHZ 10*MHZ
+
+DMA_NOSHARE SPI1*
+
+# no built-in compass, but probe the i2c bus for all possible
+# external compass types
+define ALLOW_ARM_NO_COMPASS
+define AP_COMPASS_PROBING_ENABLED 1
+define HAL_I2C_INTERNAL_MASK 0
+define HAL_COMPASS_AUTO_ROT_DEFAULT 2
+
+# one IMU supported at this momentje
+# vaarcomputerv1, BMI088
+IMU BMI088 SPI:bmi088_a SPI:bmi088_g ROTATION_NONE
+
+define HAL_DEFAULT_INS_FAST_SAMPLE 1
+
+# baromter is BMP388 on I2C1
+BARO BMP388 I2C:0:0x76
+
+# build ABIN for flash-from-bootloader support:
+env BUILD_ABIN True
